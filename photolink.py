@@ -2,6 +2,8 @@ import sqlite3
 import os
 from contextlib import closing
 
+from logger import SilentLogger, VerboseLogger
+
 
 class PhotoID(object):
 	TYPE_NAME = "thumb"
@@ -161,30 +163,6 @@ class LinkCreator(object):
 
 	def _getEventPath(self, event):
 		return os.path.join(self._eventsPath, event.name)
-
-
-class Logger(object):
-	def logTag(self, tag, path, pathExists):
-		raise NotImplementedError
-
-	def logEvent(self, event, path, pathExists):
-		raise NotImplementedError
-
-
-class SilentLogger(Logger):
-	def logTag(self, tag, path, pathExists):
-		pass
-
-	def logEvent(self, event, path, pathExists):
-		pass
-
-
-class VerboseLogger(Logger):
-	def logTag(self, tag, path, pathExists):
-		print "Tag: %s, directory: %s - %s..." % (tag.name, path, "exists, skipping" if pathExists else "creating")
-
-	def logEvent(self, event, path, pathExists):
-		print "Event: %s, directory: %s - %s..." % (event.name, path, "exists, skipping" if pathExists else "creating")
 
 
 def linkPhotos(photos, basePath, dryRun):

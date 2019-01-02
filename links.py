@@ -1,14 +1,7 @@
 import os
 
-from logger import Logger, SilentLogger, VerboseLogger
-from source import ShotwellDB
-
-
 class LinkCreator(object):
 	def __init__(self, tagsPath, eventsPath, dryRun, logger):
-		"""
-		:type logger: Logger
-		"""
 		super(LinkCreator, self).__init__()
 		self._tagsPath = tagsPath
 		self._eventsPath = eventsPath
@@ -49,31 +42,3 @@ class LinkCreator(object):
 
 	def _getEventPath(self, event):
 		return os.path.join(self._eventsPath, event.name)
-
-
-def main():
-	# TODO: arguments
-	DB_PATH = "~/.local/share/shotwell/data/photo.db"
-	BASE_PATH = "~/images/photos"
-	DRY_RUN = False
-	VERBOSE = True
-
-	TAGS_DIR = "_tags"
-	EVENTS_DIR = "_events"
-
-	dbPath = os.path.expanduser(DB_PATH)
-	tagsPath = os.path.expanduser(os.path.join(BASE_PATH, TAGS_DIR))
-	eventsPath = os.path.expanduser(os.path.join(BASE_PATH, EVENTS_DIR))
-
-	if VERBOSE:
-		logger = VerboseLogger()
-	else:
-		logger = SilentLogger()
-	creator = LinkCreator(tagsPath, eventsPath, DRY_RUN, logger)
-	source = ShotwellDB(dbPath)
-
-	creator.createLinks(source.getCollection())
-
-
-if __name__ == '__main__':
-	main()

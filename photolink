@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+
+from logger import SilentLogger, VerboseLogger
+from links import LinkCreator
+from source import ShotwellDB
+
+
+def main():
+	# TODO: arguments
+	DB_PATH = "~/.local/share/shotwell/data/photo.db"
+	BASE_PATH = "~/images/photos"
+	DRY_RUN = False
+	VERBOSE = False
+
+	TAGS_DIR = "_tags"
+	EVENTS_DIR = "_events"
+
+	argParser = argparse.ArgumentParser(description="Organize photos by events and tags using hard links")
+
+	args = argParser.parse_args()
+
+	dbPath = os.path.expanduser(DB_PATH)
+	tagsPath = os.path.expanduser(os.path.join(BASE_PATH, TAGS_DIR))
+	eventsPath = os.path.expanduser(os.path.join(BASE_PATH, EVENTS_DIR))
+
+	if VERBOSE:
+		logger = VerboseLogger()
+	else:
+		logger = SilentLogger()
+	creator = LinkCreator(tagsPath, eventsPath, DRY_RUN, logger)
+	source = ShotwellDB(dbPath)
+
+	creator.createLinks(source.getCollection())
+
+
+if __name__ == '__main__':
+	main()

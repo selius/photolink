@@ -9,28 +9,34 @@ from source import ShotwellDB
 
 
 def main():
-	# TODO: arguments
 	DB_PATH = "~/.local/share/shotwell/data/photo.db"
-	BASE_PATH = "~/images/photos"
-	DRY_RUN = False
-	VERBOSE = False
 
 	TAGS_DIR = "_tags"
 	EVENTS_DIR = "_events"
 
 	argParser = argparse.ArgumentParser(description="Organize photos by events and tags using hard links")
+	argParser.add_argument("path", help="the base path for _events and _tags directories, created if doesn't exist")
+	argParser.add_argument(
+		"-v", "--verbose", help="print a message for each directory and link created", action="store_true")
+	argParser.add_argument(
+		"-n", "--dry-run",
+		help=
+			"iterate over the photo collection, but don't make any changes to the file system; "
+			"useful with -v to see what would be done",
+		action="store_true"
+	)
 
 	args = argParser.parse_args()
 
 	dbPath = os.path.expanduser(DB_PATH)
-	tagsPath = os.path.expanduser(os.path.join(BASE_PATH, TAGS_DIR))
-	eventsPath = os.path.expanduser(os.path.join(BASE_PATH, EVENTS_DIR))
+	tagsPath = os.path.expanduser(os.path.join(args.path, TAGS_DIR))
+	eventsPath = os.path.expanduser(os.path.join(args.path, EVENTS_DIR))
 
-	if VERBOSE:
+	if args.verbose:
 		logger = VerboseLogger()
 	else:
 		logger = SilentLogger()
-	creator = LinkCreator(tagsPath, eventsPath, DRY_RUN, logger)
+	creator = LinkCreator(tagsPath, eventsPath, args.dry_run, logger)
 	source = ShotwellDB(dbPath)
 
 	creator.createLinks(source.getCollection())

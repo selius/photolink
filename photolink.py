@@ -127,6 +127,66 @@ class ShotwellDB(object):
 		return result
 
 
+class LinkCreator(object):
+	def __init__(self, tagsPath, eventsPath, dryRun):
+		super(LinkCreator, self).__init__()
+		self._tagsPath = tagsPath
+		self._eventsPath = eventsPath
+		self._dryRun = dryRun
+
+	def ensureTagPath(self, tag):
+		tagPath = self._getTagPath(tag)
+		tagPathExists = os.path.exists(tagPath)
+		if not tagPathExists:
+			self._createPath(tagPath)
+		return tagPath, tagPathExists
+
+	def ensureEventPath(self, event):
+		eventPath = self._getEventPath(event)
+		eventPathExists = os.path.exists(eventPath)
+		if not eventPathExists:
+			self._createPath(eventPath)
+		return eventPath, eventPathExists
+
+	def _createPath(self, path):
+		if not self._dryRun:
+			os.makedirs(path)
+
+	def _getTagPath(self, tag):
+		tagName = tag.name
+		if tagName.startswith("/"):
+			return self._tagsPath + tagName
+		else:
+			return os.path.join(self._tagsPath, tagName)
+
+	def _getEventPath(self, event):
+		return os.path.join(self._eventsPath, event.name)
+
+
+class Logger(object):
+	def logTag(self, tag, path, pathExists):
+		raise NotImplementedError
+
+	def logEvent(self, event, path, pathExists):
+		raise NotImplementedError
+
+
+class SilentLogger(Logger):
+	def logTag(self, tag, path, pathExists):
+		pass
+
+	def logEvent(self, event, path, pathExists):
+		pass
+
+
+class VerboseLogger(Logger):
+	def logTag(self, tag, path, pathExists):
+		print "Tag: %s, directory: %s - %s..." % (tag.name, path, "exists, skipping" if pathExists else "creating")
+
+	def logEvent(self, event, path, pathExists):
+		print "Event: %s, directory: %s - %s..." % (event.name, path, "exists, skipping" if pathExists else "creating")
+
+
 def linkPhotos(photos, basePath, dryRun):
 	for photo in photos:
 		fileName = os.path.basename(photo.path)
@@ -137,45 +197,38 @@ def linkPhotos(photos, basePath, dryRun):
 
 
 def main():
+	# TODO: arguments
 	DB_PATH = "~/.local/share/shotwell/data/photo.db"
-	TAGS_PATH = "~/images/photos/_tags"
-	EVENTS_PATH = "~/images/photos/_events"
-	DRY_RUN = False
+	BASE_PATH = "~/images/photos"
+	DRY_RUN = True
+	VERBOSE = True
 
-	tagsPath = os.path.expanduser(TAGS_PATH)
-	eventsPath = os.path.expanduser(EVENTS_PATH)
+	TAGS_DIR = "_tags"
+	EVENTS_DIR = "_events"
+
+	tagsPath = os.path.expanduser(os.path.join(BASE_PATH, TAGS_DIR))
+	eventsPath = os.path.expanduser(os.path.join(BASE_PATH, EVENTS_DIR))
+
+	creator = LinkCreator(tagsPath, eventsPath, DRY_RUN)
+	if VERBOSE:
+		logger = VerboseLogger()
+	else:
+		logger = SilentLogger()
 
 	with ShotwellDB(os.path.expanduser(DB_PATH)) as db:
 		tags = db.listTags()
 
 		for tag in tags:
-			tagName = tag.name
-			if tagName.startswith("/"):
-				tagPath = tagsPath + tagName
-			else:
-				tagPath = os.path.join(tagsPath, tagName)
-
-			tagPathExists = os.path.exists(tagPath)
-			print "Tag: %s, directory: %s - %s..." % (
-				tagName, tagPath, "exists, skipping" if tagPathExists else "creating")
-			if not DRY_RUN:
-				if not tagPathExists:
-					os.makedirs(tagPath)
-
+			tagPath, tagPathExists = creator.ensureTagPath(tag)
+			logger.logTag(tag, tagPath, tagPathExists)
 			photos = db.listPhotosByTag(tag)
 			linkPhotos(photos, tagPath, DRY_RUN)
 
 		events = db.listEvents()
 
 		for event in events:
-			eventPath = os.path.join(eventsPath, event.name)
-			eventPathExists = os.path.exists(eventPath)
-			print "Event: %s, directory: %s - %s..." % (
-				event.name, eventPath, "exists, skipping" if eventPathExists else "creating")
-			if not DRY_RUN:
-				if not eventPathExists:
-					os.makedirs(eventPath)
-
+			eventPath, eventPathExists = creator.ensureEventPath(event)
+			logger.logEvent(event, eventPath, eventPathExists)
 			photos = db.listPhotosByEvnet(event)
 			linkPhotos(photos, eventPath, DRY_RUN)
 

@@ -43,8 +43,10 @@ def main():
 	logger.logPaths(tagsPath, eventsPath)
 
 	if args.recreate and not args.dry_run:
-		shutil.rmtree(tagsPath)
-		shutil.rmtree(eventsPath)
+		if os.path.exists(tagsPath):
+			shutil.rmtree(tagsPath)
+		if os.path.exists(eventsPath):
+			shutil.rmtree(eventsPath)
 
 	creator = LinkCreator(tagsPath, eventsPath, args.dry_run, logger)
 	source = ShotwellDB(dbPath)

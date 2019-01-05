@@ -40,6 +40,8 @@ def main():
 	else:
 		logger = SilentLogger()
 
+	logger.logPaths(tagsPath, eventsPath)
+
 	if args.recreate and not args.dry_run:
 		shutil.rmtree(tagsPath)
 		shutil.rmtree(eventsPath)

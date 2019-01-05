@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import shutil
 
 from logger import SilentLogger, VerboseLogger
 from links import LinkCreator
@@ -16,6 +17,8 @@ def main():
 
 	argParser = argparse.ArgumentParser(description="Organize photos by events and tags using hard links")
 	argParser.add_argument("path", help="the base path for _events and _tags directories, created if doesn't exist")
+	argParser.add_argument(
+		"-r", "--recreate", help="remove and recreate _events and _tags directories", action="store_true")
 	argParser.add_argument(
 		"-v", "--verbose", help="print a message for each directory and link created", action="store_true")
 	argParser.add_argument(
@@ -36,6 +39,11 @@ def main():
 		logger = VerboseLogger()
 	else:
 		logger = SilentLogger()
+
+	if args.recreate and not args.dry_run:
+		shutil.rmtree(tagsPath)
+		shutil.rmtree(eventsPath)
+
 	creator = LinkCreator(tagsPath, eventsPath, args.dry_run, logger)
 	source = ShotwellDB(dbPath)
 

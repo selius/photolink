@@ -1,35 +1,59 @@
 import sqlite3
 from contextlib import closing
 
-from models import Tag, Photo, Event, PhotoCollection
+from models import Tag, Photo, Video, Event, MediaCollection
 
 
-class PhotoInfoSource(object):
+class MediaCollectionSource(object):
 	def getCollection(self):
 		return NotImplementedError
 
 
-class ShotwellDB(PhotoInfoSource):
-	class PhotoID(object):
-		TYPE_NAME = "thumb"
-
+class ShotwellDB(MediaCollectionSource):
+	class SourceID(object):
 		@classmethod
 		def sourceIdToNumericId(cls, sourceId):
 			"""
 			:type sourceId: str
 			"""
-			if sourceId.startswith(cls.TYPE_NAME):
-				return int(sourceId[len(cls.TYPE_NAME):], 16)
+			if sourceId.startswith(cls.getTypeName()):
+				return int(sourceId[len(cls.getTypeName()):], 16)
 			else:
 				return sourceId
 
 		@classmethod
 		def isSourceId(cls, sourceId):
-			return sourceId.startswith(cls.TYPE_NAME)
+			return sourceId.startswith(cls.getTypeName())
+
+		@classmethod
+		def getTypeName(cls):
+			raise NotImplementedError
 
 
-	class VideoID(object):
-		TYPE_NAME = "video"
+	class PhotoID(SourceID):
+		@classmethod
+		def getTypeName(cls):
+			return "thumb"
+
+
+	class VideoID(SourceID):
+		@classmethod
+		def getTypeName(cls):
+			return "video-"
+
+
+	class SourceTypeInfo(object):
+		def __init__(self, table, mediaCls, idCls):
+			#super(ShotwellDB.SourceTypeInfo, self).__init__()
+			self.table = table
+			self.mediaCls = mediaCls
+			self.idCls = idCls
+
+
+	SOURCE_TYPES = [
+		SourceTypeInfo("PhotoTable", Photo, PhotoID),
+		SourceTypeInfo("VideoTable", Video, VideoID)
+	]
 
 
 	def __init__(self, path):
@@ -42,7 +66,7 @@ class ShotwellDB(PhotoInfoSource):
 		try:
 			self._conn.row_factory = sqlite3.Row
 
-			col = PhotoCollection()
+			col = MediaCollection()
 			self._loadTags(col)
 			self._loadEvents(col)
 
@@ -53,36 +77,43 @@ class ShotwellDB(PhotoInfoSource):
 	def _loadTags(self, col):
 		with closing(self._conn.cursor()) as c:
 			for row in c.execute("SELECT name, photo_id_list FROM TagTable"):
-				photoIdList = self._parseSourceIdList(row["photo_id_list"])
-				col.tags.append(Tag(row["name"], self._listPhotosByIds(photoIdList)))
+				sourceIdList = self._parseSourceIdList(row["photo_id_list"])
+				col.tags.append(Tag(row["name"], self._listMediaByIds(sourceIdList)))
 
 	def _loadEvents(self, col):
 		with closing(self._conn.cursor()) as c:
 			for row in c.execute("SELECT id, name FROM EventTable WHERE name IS NOT NULL"):
-				col.events.append(Event(row["name"], self._listPhotosByEventId(row["id"])))
+				col.events.append(Event(row["name"], self._listMediaByEventId(row["id"])))
 
-	def _listPhotosByIds(self, ids):
+	def _listMediaByIds(self, ids):
 		result = []
-		if ids:
-			with closing(self._conn.cursor()) as c:
-				sql = "SELECT id, filename FROM PhotoTable WHERE id IN (%s)" % ",".join("?" * len(ids))
-				for row in c.execute(sql, ids):
-					result.append(Photo(row["id"], row["filename"]))
+		for srcType in self.SOURCE_TYPES:
+			typeIds = ids[srcType.idCls]
+			if typeIds:
+				with closing(self._conn.cursor()) as c:
+					sql = "SELECT id, filename FROM %s WHERE id IN (%s)" % (srcType.table, ",".join("?" * len(typeIds)))
+					for row in c.execute(sql, typeIds):
+						result.append(srcType.mediaCls(row["id"], row["filename"]))
 		return result
 
-	def _listPhotosByEventId(self, eventId):
+	def _listMediaByEventId(self, eventId):
 		result = []
-		with closing(self._conn.cursor()) as c:
-			sql = "SELECT id, filename FROM PhotoTable WHERE event_id = ?"
-			for row in c.execute(sql, [eventId]):
-				result.append(Photo(row["id"], row["filename"]))
+		for srcType in self.SOURCE_TYPES:
+			with closing(self._conn.cursor()) as c:
+				sql = "SELECT id, filename FROM %s WHERE event_id = ?" % srcType.table
+				for row in c.execute(sql, [eventId]):
+					result.append(srcType.mediaCls(row["id"], row["filename"]))
 		return result
 
 	def _parseSourceIdList(self, sourceIds):
-		result = []
+		result = {}
+		for srcType in self.SOURCE_TYPES:
+			result[srcType.idCls] = []
+
 		if sourceIds:
 			sourceIdList = sourceIds.split(",")
 			for sourceId in sourceIdList:
-				if self.PhotoID.isSourceId(sourceId):
-					result.append(self.PhotoID.sourceIdToNumericId(sourceId))
+				for idCls in result:
+					if idCls.isSourceId(sourceId):
+						result[idCls].append(idCls.sourceIdToNumericId(sourceId))
 		return result

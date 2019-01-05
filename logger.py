@@ -2,10 +2,10 @@ class Logger(object):
 	def logPaths(self, tagsPath, eventsPath):
 		raise NotImplementedError
 
-	def logPathCreation(self, photoList, path, pathExists):
+	def logPathCreation(self, mediaList, path, pathExists):
 		raise NotImplementedError
 
-	def logLinkCreation(self, photo, path):
+	def logLinkCreation(self, media, path):
 		raise NotImplementedError
 
 
@@ -13,10 +13,10 @@ class SilentLogger(Logger):
 	def logPaths(self, tagsPath, eventsPath):
 		pass
 
-	def logPathCreation(self, photoList, path, pathExists):
+	def logPathCreation(self, mediaList, path, pathExists):
 		pass
 
-	def logLinkCreation(self, photo, path):
+	def logLinkCreation(self, media, path):
 		pass
 
 
@@ -25,9 +25,9 @@ class VerboseLogger(Logger):
 		print "Tags directory: %s" % tagsPath
 		print "Events directory: %s" % eventsPath
 
-	def logPathCreation(self, photoList, path, pathExists):
+	def logPathCreation(self, mediaList, path, pathExists):
 		print "%s: %s, directory: %s - %s..." % (
-			photoList.typeName(), photoList.name, path, "exists, skipping" if pathExists else "creating")
+			mediaList.typeName(), mediaList.name, path, "exists, skipping" if pathExists else "creating")
 
-	def logLinkCreation(self, photo, path):
-		print "Photo: %s: %s -> %s" % (photo.id, photo.path, path)
+	def logLinkCreation(self, media, path):
+		print "%s: %s: %s -> %s" % (media.typeName(), media.id, media.path, path)

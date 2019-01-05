@@ -10,26 +10,26 @@ class LinkCreator(object):
 
 	def createLinks(self, collection):
 		for tag in collection.tags:
-			self._processPhotoList(tag, self._getTagPath(tag))
+			self._processMediaList(tag, self._getTagPath(tag))
 
 		for event in collection.events:
-			self._processPhotoList(event, self._getEventPath(event))
+			self._processMediaList(event, self._getEventPath(event))
 
-	def _processPhotoList(self, photoList, path):
-		self._ensurePath(path, photoList)
-		for photo in photoList.photos:
-			self._createLink(photo, path)
+	def _processMediaList(self, mediaList, path):
+		self._ensurePath(path, mediaList)
+		for media in mediaList.objects:
+			self._createLink(media, path)
 
-	def _createLink(self, photo, linkPath):
-		fileName = os.path.basename(photo.path)
+	def _createLink(self, media, linkPath):
+		fileName = os.path.basename(media.path)
 		linkPath = os.path.join(linkPath, fileName)
-		self._logger.logLinkCreation(photo, linkPath)
+		self._logger.logLinkCreation(media, linkPath)
 		if not self._dryRun:
-			os.link(photo.path, linkPath)
+			os.link(media.path, linkPath)
 
-	def _ensurePath(self, path, photoList):
+	def _ensurePath(self, path, mediaList):
 		pathExists = os.path.exists(path)
-		self._logger.logPathCreation(photoList, path, pathExists)
+		self._logger.logPathCreation(mediaList, path, pathExists)
 		if not self._dryRun and not pathExists:
 			os.makedirs(path)
 

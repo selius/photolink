@@ -1,6 +1,6 @@
-class Photo(object):
+class Media(object):
 	def __init__(self, id, path):
-		super(Photo, self).__init__()
+		super(Media, self).__init__()
 		self._id = id
 		self._path = path
 
@@ -12,41 +12,57 @@ class Photo(object):
 	def path(self):
 		return self._path
 
+	@classmethod
+	def typeName(cls):
+		return NotImplementedError
 
-class PhotoList(object):
-	def __init__(self, name, photos):
-		super(PhotoList, self).__init__()
+
+class Photo(Media):
+	@classmethod
+	def typeName(cls):
+		return "Photo"
+
+
+class Video(Media):
+	@classmethod
+	def typeName(cls):
+		return "Video"
+
+
+class MediaList(object):
+	def __init__(self, name, objects):
+		super(MediaList, self).__init__()
 		self._name = name
-		self._photos = photos
+		self._objects = objects
 
 	@property
 	def name(self):
 		return self._name
 
 	@property
-	def photos(self):
-		return self._photos
+	def objects(self):
+		return self._objects
 
 	@classmethod
 	def typeName(cls):
 		return NotImplementedError
 
 
-class Tag(PhotoList):
+class Tag(MediaList):
 	@classmethod
 	def typeName(cls):
 		return "Tag"
 
 
-class Event(PhotoList):
+class Event(MediaList):
 	@classmethod
 	def typeName(cls):
 		return "Event"
 
 
-class PhotoCollection(object):
+class MediaCollection(object):
 	def __init__(self):
-		super(PhotoCollection, self).__init__()
+		super(MediaCollection, self).__init__()
 		self._tags = []
 		self._events = []
 

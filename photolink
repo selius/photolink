@@ -58,6 +58,8 @@ def main():
 
 	creator.createLinks(source.getCollection())
 
+	logger.logResults(creator.dirsCreated(), creator.linksCreated())
+
 
 if __name__ == '__main__':
 	main()

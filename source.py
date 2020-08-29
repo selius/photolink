@@ -82,7 +82,7 @@ class ShotwellDB(MediaCollectionSource):
 
 	def _loadEvents(self, col):
 		with closing(self._conn.cursor()) as c:
-			for row in c.execute("SELECT id, name FROM EventTable WHERE name IS NOT NULL"):
+			for row in c.execute("SELECT id, name FROM EventTable WHERE COALESCE(name, '') <> ''"):
 				col.events.append(Event(row["name"], self._listMediaByEventId(row["id"])))
 
 	def _listMediaByIds(self, ids):

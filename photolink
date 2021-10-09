@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import os
@@ -17,8 +17,6 @@ def main():
 
 	TAGS_DIR = "_tags"
 	EVENTS_DIR = "_events"
-
-	sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 	argParser = argparse.ArgumentParser(description="Organize photos by events and tags using hard links")
 	argParser.add_argument("path", help="the base path for _events and _tags directories, created if doesn't exist")

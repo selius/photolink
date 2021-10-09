@@ -28,16 +28,16 @@ class SilentLogger(Logger):
 
 class VerboseLogger(Logger):
 	def logPaths(self, tagsPath, eventsPath):
-		print "Tags directory: %s" % tagsPath
-		print "Events directory: %s" % eventsPath
+		print("Tags directory: %s" % tagsPath)
+		print("Events directory: %s" % eventsPath)
 
 	def logPathCreation(self, mediaList, path, pathExists):
-		print "%s: %s, directory: %s - %s..." % (
-			mediaList.typeName(), mediaList.name, path, "exists, skipping" if pathExists else "creating")
+		print("%s: %s, directory: %s - %s..." % (
+			mediaList.typeName(), mediaList.name, path, "exists, skipping" if pathExists else "creating"))
 
 	def logLinkCreation(self, media, path, pathExists):
-		print "%s: %s: %s -> %s%s" % (media.typeName(), media.id, media.path, path, " (exists)" if pathExists else "")
+		print("%s: %s: %s -> %s%s" % (media.typeName(), media.id, media.path, path, " (exists)" if pathExists else ""))
 
 	def logResults(self, dirsCreated, linksCreated):
-		print "Directories created: %d" % dirsCreated
-		print "Links created: %d" % linksCreated
+		print("Directories created: %d" % dirsCreated)
+		print("Links created: %d" % linksCreated)

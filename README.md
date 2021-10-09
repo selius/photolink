@@ -4,7 +4,7 @@
 
 The idea is that you can browse your photos by events and tags using any application without consuming any extra disk space.
 
-Currently it extracts the photo collection from a [Shotwell](https://github.com/GNOME/shotwell) SQLite database, but other sources can be added later.
+Currently, it extracts the photo collection from a [Shotwell](https://github.com/GNOME/shotwell) SQLite database, but other sources can be added later.
 
 Then it creates **_events** and **_tags** directories under the specified base path. Each photo that belongs to a tag or an event is then hard-linked into a subdirectory of **_tags** or **_events** correspondingly. Events always have a flat structure, while tags can be nested.
 

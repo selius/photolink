@@ -12,10 +12,7 @@ class MediaCollectionSource(object):
 class ShotwellDB(MediaCollectionSource):
 	class SourceID(object):
 		@classmethod
-		def sourceIdToNumericId(cls, sourceId):
-			"""
-			:type sourceId: str
-			"""
+		def sourceIdToNumericId(cls, sourceId: str):
 			if sourceId.startswith(cls.getTypeName()):
 				return int(sourceId[len(cls.getTypeName()):], 16)
 			else:
@@ -74,13 +71,13 @@ class ShotwellDB(MediaCollectionSource):
 		finally:
 			self._conn.close()
 
-	def _loadTags(self, col):
+	def _loadTags(self, col: MediaCollection):
 		with closing(self._conn.cursor()) as c:
 			for row in c.execute("SELECT name, photo_id_list FROM TagTable"):
 				sourceIdList = self._parseSourceIdList(row["photo_id_list"])
 				col.tags.append(Tag(row["name"], self._listMediaByIds(sourceIdList)))
 
-	def _loadEvents(self, col):
+	def _loadEvents(self, col: MediaCollection):
 		with closing(self._conn.cursor()) as c:
 			for row in c.execute("SELECT id, name FROM EventTable WHERE COALESCE(name, '') <> ''"):
 				col.events.append(Event(row["name"], self._listMediaByEventId(row["id"])))

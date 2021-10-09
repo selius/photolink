@@ -1,5 +1,8 @@
 import os
 
+from models import Event, Tag, MediaList, Media, MediaCollection
+
+
 class LinkCreator(object):
 	def __init__(self, tagsPath, eventsPath, dryRun, logger):
 		super(LinkCreator, self).__init__()
@@ -10,7 +13,7 @@ class LinkCreator(object):
 		self._dirsCreated = 0
 		self._linksCreated = 0
 
-	def createLinks(self, collection):
+	def createLinks(self, collection: MediaCollection):
 		self._dirsCreated = 0
 		self._linksCreated = 0
 
@@ -26,12 +29,12 @@ class LinkCreator(object):
 	def linksCreated(self):
 		return self._linksCreated
 
-	def _processMediaList(self, mediaList, path):
+	def _processMediaList(self, mediaList: MediaList, path):
 		self._ensurePath(path, mediaList)
 		for media in mediaList.objects:
 			self._createLink(media, path)
 
-	def _createLink(self, media, linkPath):
+	def _createLink(self, media: Media, linkPath):
 		fileName = os.path.basename(media.path)
 		linkPath = os.path.join(linkPath, fileName)
 		pathExists = os.path.exists(linkPath)
@@ -41,7 +44,7 @@ class LinkCreator(object):
 			if not self._dryRun:
 				os.link(media.path, linkPath)
 
-	def _ensurePath(self, path, mediaList):
+	def _ensurePath(self, path, mediaList: MediaList):
 		pathExists = os.path.exists(path)
 		self._logger.logPathCreation(mediaList, path, pathExists)
 		if not pathExists:
@@ -49,12 +52,12 @@ class LinkCreator(object):
 			if not self._dryRun:
 				os.makedirs(path)
 
-	def _getTagPath(self, tag):
+	def _getTagPath(self, tag: Tag):
 		tagName = tag.name
 		if tagName.startswith("/"):
 			return self._tagsPath + tagName
 		else:
 			return os.path.join(self._tagsPath, tagName)
 
-	def _getEventPath(self, event):
+	def _getEventPath(self, event: Event):
 		return os.path.join(self._eventsPath, event.name)

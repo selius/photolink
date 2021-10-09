@@ -3,12 +3,9 @@
 import argparse
 import os
 import shutil
-import sys
-import codecs
-import locale
 
-from logger import SilentLogger, VerboseLogger
 from links import LinkCreator
+from logger import SilentLogger, VerboseLogger
 from source import ShotwellDB
 
 
